@@ -1,7 +1,7 @@
 const Url = require("../models/url.model");
 
-exports.cleanupExpiredUrls = async ()=>{
-    try {
+exports.cleanupExpiredUrls = async () => {
+  try {
     const result = await Url.deleteMany({
       expiryDate: { $lte: new Date() }
     });

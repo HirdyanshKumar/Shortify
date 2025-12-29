@@ -5,12 +5,12 @@ const urlSchema = new mongoose.Schema({
         type: String,
         required: true,
     },
-    shortUrl: {
+    shortId: {
         type: String,
         required: true,
         unique: true,
     },
-    customAlais: {
+    customAlias: {
         type: String,
     },
     user: { type: mongoose.Schema.Types.ObjectId, ref: "User" },

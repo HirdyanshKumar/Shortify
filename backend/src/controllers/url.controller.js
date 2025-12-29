@@ -1,5 +1,6 @@
 const Url = require("../models/url.model");
 const { nanoid } = require("nanoid");
+const bcrypt = require("bcryptjs");
 const Joi = require("joi");
 const { success, error } = require("../utils/response");
 const { isExpired } = require("../utils/urlExpiry");
@@ -7,13 +8,14 @@ const createSchema = Joi.object({
   originalUrl: Joi.string().uri().required(),
   customAlias: Joi.string().alphanum().min(3).max(20).optional(),
   expiryDate: Joi.date().optional(),
-  isPrivate: Joi.boolean().optional()
+  isPrivate: Joi.boolean().optional(),
+  password: Joi.string().min(6).optional(),
 });
 
 
 exports.createShortUrl = async (req, res) => {
   try {
-   const { originalUrl, customAlias, expiryDate, isPrivate, password } = req.body;
+    const { originalUrl, customAlias, expiryDate, isPrivate, password } = req.body;
 
 
 
@@ -31,15 +33,14 @@ exports.createShortUrl = async (req, res) => {
     if (password) hashedPassword = await bcrypt.hash(password, 10);
 
     const url = await Url.create({
-    originalUrl,
-    shortId,
-    customAlias,
-    user: req.user.id,
-    expiryDate,
-    isPrivate: isPrivate || false,
-    password: hashedPassword
+      originalUrl,
+      shortId,
+      customAlias,
+      user: req.user.id,
+      expiryDate,
+      isPrivate: isPrivate || false,
+      password: hashedPassword
     });
-
 
     const shortUrl = `${process.env.BASE_URL}/${shortId}`;
 

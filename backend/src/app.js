@@ -47,6 +47,9 @@ app.get("/:shortId", async (req, res) => {
     await urlDoc.save();
     // Log analytics
     logAnalytics(req, urlDoc);
+    if (urlDoc.isPrivate) {
+      return res.redirect(`${process.env.FRONTEND_URL}/unlock/${shortId}`);
+    }
 
     return res.redirect(urlDoc.originalUrl);
   } catch (err) {
