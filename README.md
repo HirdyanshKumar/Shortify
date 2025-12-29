@@ -1,4 +1,4 @@
-# URL Shortener SaaS 🚀
+# Shortify 🚀
 
 A full-stack URL management platform featuring custom aliases, QR code generation, link expiry, analytics tracking, and privacy-controlled links.
 
