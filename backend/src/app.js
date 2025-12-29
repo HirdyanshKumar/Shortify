@@ -14,6 +14,8 @@ app.use(express.json());
 app.use(morgan('dev'));
 
 
+app.use('/api', routes); // Mount API routes first
+
 app.get("/:shortId", async (req, res) => {
   try {
     const { shortId } = req.params;
@@ -29,24 +31,22 @@ app.get("/:shortId", async (req, res) => {
 
     // Expiry validation
     if (isExpired(urlDoc)) {
-    // mark inactive permanently
-    urlDoc.isActive = false;
-    await urlDoc.save();
-    return res.status(410).json({ success: false, message: "URL expired and disabled" });
+      // mark inactive permanently
+      urlDoc.isActive = false;
+      await urlDoc.save();
+      return res.status(410).json({ success: false, message: "URL expired and disabled" });
     }
-    if (urlDoc.password) {
-    return res.status(401).json({
-        success: false,
-        protected: true,
-        message: "Password required",
-    });
-    }
-
     // Increment click count
     urlDoc.clickCount += 1;
     await urlDoc.save();
     // Log analytics
     logAnalytics(req, urlDoc);
+
+    if (urlDoc.password) {
+      // Allow browser to handle redirect to unlock page
+      return res.redirect(`${process.env.FRONTEND_URL}/unlock/${shortId}`);
+    }
+
     if (urlDoc.isPrivate) {
       return res.redirect(`${process.env.FRONTEND_URL}/unlock/${shortId}`);
     }

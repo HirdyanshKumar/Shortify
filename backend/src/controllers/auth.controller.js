@@ -7,12 +7,13 @@ const { success, error } = require("../utils/response");
 const signupSchema = Joi.object({
   email: Joi.string().email().required(),
   password: Joi.string().min(6).required(),
-  name: Joi.string().optional(),
+  username: Joi.string().optional(),
 });
 
 exports.signup = async (req, res) => {
   try {
-    const { email, password, name } = req.body;
+
+    const { email, password, username } = req.body;
 
     const { error: validationError } = signupSchema.validate(req.body);
     if (validationError) return error(res, validationError.message, 400);
@@ -23,7 +24,7 @@ exports.signup = async (req, res) => {
     const hashed = await bcrypt.hash(password, 10);
 
     const user = await User.create({
-      name,
+      name: username,
       email,
       password: hashed,
     });

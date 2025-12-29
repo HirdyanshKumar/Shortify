@@ -128,12 +128,18 @@ exports.updateAlias = async (req, res) => {
 exports.updatePrivacy = async (req, res) => {
   try {
     const { id } = req.params;
-    const { isPrivate } = req.body;
+    const { isPrivate, password } = req.body;
 
     const url = await Url.findOne({ _id: id, user: req.user.id });
     if (!url) return error(res, "URL not found", 404);
 
     url.isPrivate = Boolean(isPrivate);
+
+    // If enabling privacy and password provided, update it
+    if (url.isPrivate && password) {
+      url.password = await bcrypt.hash(password, 10);
+    }
+
     await url.save();
 
     return success(res, url, `Privacy updated – now ${url.isPrivate ? "PRIVATE" : "PUBLIC"}`);

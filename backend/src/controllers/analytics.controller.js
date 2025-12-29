@@ -13,11 +13,13 @@ exports.getSummary = async (req, res) => {
     const { id } = req.params;
     const url = await validateUrlOwnership(req, id);
     if (!url) return error(res, "URL not found or unauthorized", 404);
-    if (url.isPrivate) return error(res, "Analytics disabled for private URLs", 403);
-
 
     const totalClicks = await Analytics.countDocuments({ url: id });
-    return success(res, { totalClicks });
+
+    const uniqueUsersArray = await Analytics.distinct("ip", { url: id });
+    const uniqueUsers = uniqueUsersArray.length;
+
+    return success(res, { totalClicks, uniqueUsers });
   } catch (err) {
     return error(res, err.message, 500);
   }
@@ -29,8 +31,6 @@ exports.getDailyChart = async (req, res) => {
     const { id } = req.params;
     const url = await validateUrlOwnership(req, id);
     if (!url) return error(res, "URL not found or unauthorized", 404);
-    if (url.isPrivate) return error(res, "Analytics disabled for private URLs", 403);
-
 
     const chart = await Analytics.aggregate([
       { $match: { url: url._id } },
@@ -40,7 +40,8 @@ exports.getDailyChart = async (req, res) => {
           clicks: { $sum: 1 }
         }
       },
-      { $sort: { _id: 1 } }
+      { $sort: { _id: 1 } },
+      { $project: { _id: 0, date: "$_id", count: "$clicks" } } // Transform to frontend format
     ]);
 
     return success(res, chart);
@@ -49,31 +50,35 @@ exports.getDailyChart = async (req, res) => {
   }
 };
 
+
 // Breakdown by device, country, browser
 exports.getBreakdown = async (req, res) => {
   try {
     const { id } = req.params;
     const url = await validateUrlOwnership(req, id);
     if (!url) return error(res, "URL not found or unauthorized", 404);
-    if (url.isPrivate) return error(res, "Analytics disabled for private URLs", 403);
-
 
     const breakdown = {};
 
-    breakdown.byDevice = await Analytics.aggregate([
+    const formatData = (data) => data.map(item => ({ name: item._id || 'Unknown', value: item.count }));
+
+    const deviceData = await Analytics.aggregate([
       { $match: { url: url._id } },
       { $group: { _id: "$device", count: { $sum: 1 } } }
     ]);
+    breakdown.byDevice = formatData(deviceData);
 
-    breakdown.byCountry = await Analytics.aggregate([
+    const countryData = await Analytics.aggregate([
       { $match: { url: url._id } },
       { $group: { _id: "$country", count: { $sum: 1 } } }
     ]);
+    breakdown.byCountry = formatData(countryData);
 
-    breakdown.byBrowser = await Analytics.aggregate([
+    const browserData = await Analytics.aggregate([
       { $match: { url: url._id } },
       { $group: { _id: "$browser", count: { $sum: 1 } } }
     ]);
+    breakdown.byBrowser = formatData(browserData);
 
     return success(res, breakdown);
   } catch (err) {
