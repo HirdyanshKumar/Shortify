@@ -135,7 +135,7 @@ export default function Dashboard() {
 
     const copyToClipboard = (shortId: string) => {
 
-        const baseUrl = process.env.BASE_URL || "http://localhost:3000";
+        const baseUrl = process.env.BASE_URL;
         const link = `${baseUrl}/${shortId}`;
         navigator.clipboard.writeText(link);
     };
