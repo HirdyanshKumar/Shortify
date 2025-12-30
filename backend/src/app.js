@@ -10,7 +10,7 @@ require('dotenv').config();
 const app = express();
 
 app.use(cors({
-  origin: ["http://localhost:5173", "https://shortify-eta.vercel.app"],
+  origin: "*",
   credentials: true
 }));
 app.use(express.json());
