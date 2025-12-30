@@ -134,13 +134,7 @@ export default function Dashboard() {
     };
 
     const copyToClipboard = (shortId: string) => {
-        // Assuming backend runs on same host or configured. 
-        // Backend creates shortUrl using process.env.BASE_URL.
-        // However, the api returns the full shortUrl in `res.data.shortUrl` usually?
-        // Let's check create controller response: `shortUrl = ...`.
-        // But `getMyUrls` returns URL documents. The document has `shortId`.
-        // So we construct it.
-        // For now I'll use localhost:5000 as base or just copy the path.
+
         const baseUrl = process.env.BASE_URL || "http://localhost:3000";
         const link = `${baseUrl}/${shortId}`;
         navigator.clipboard.writeText(link);

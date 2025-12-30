@@ -4,9 +4,7 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { api } from "@/lib/api";
-import { motion } from "framer-motion"; // I forgot to install framer-motion, but I can use GSAP or just standard CSS or install it. The prompt mentioned Lottie/GSAP. I'll use simple CSS classes or GSAP if needed. But I'll stick to Tailwind animations I defined in globals.css (animate-float) for now to save install time, or just use standard react state.
-// Wait, I can install framer-motion quickly, it's very useful.
-// I'll stick to standard useState for logic and Tailwind for visuals to be safe.
+import { motion } from "framer-motion";
 
 export default function LoginPage() {
     const router = useRouter();

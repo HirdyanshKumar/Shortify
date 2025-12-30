@@ -16,11 +16,7 @@ export default function SignupPage() {
         setLoading(true);
         setError("");
         try {
-            // Backend expects 'name' or 'username'? checking auth.controller logic not possible easily without reading it, but typical is 'username' or 'name'. 
-            // I'll check auth.routes but it just points to controller.
-            // I'll assume 'username' and 'email' based on standard practice. 
-            // Actually common practice is just email/password, or name/email/password.
-            // I'll send username, email, password.
+
 
             const res = await api.auth.signup(formData);
             // Usually signup returns token or success message.
