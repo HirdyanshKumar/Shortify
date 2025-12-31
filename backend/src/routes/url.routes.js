@@ -8,7 +8,8 @@ const {
   deleteUrl,
   toggleUrlStatus,
   updateAlias,
-  updatePrivacy
+  updatePrivacy,
+  updateExpiry
 } = require("../controllers/url.controller");
 
 
@@ -19,6 +20,7 @@ router.delete("/:id", auth, deleteUrl);
 router.patch("/:id/toggle", auth, toggleUrlStatus);
 router.patch("/:id/alias", auth, updateAlias);
 router.patch("/:id/privacy", auth, updatePrivacy);
+router.patch("/:id/expiry", auth, updateExpiry);
 
 
 module.exports = router;
