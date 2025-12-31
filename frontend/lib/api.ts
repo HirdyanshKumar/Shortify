@@ -47,6 +47,7 @@ export const api = {
         toggle: (id: string) => fetcher(`/url/${id}/toggle`, { method: 'PATCH' }),
         updateAlias: (id: string, customAlias: string) => fetcher(`/url/${id}/alias`, { method: 'PATCH', body: JSON.stringify({ customAlias }) }),
         updatePrivacy: (id: string, isPrivate: boolean, password?: string) => fetcher(`/url/${id}/privacy`, { method: 'PATCH', body: JSON.stringify({ isPrivate, password }) }),
+        updateExpiry: (id: string, expiryDate: string) => fetcher(`/url/${id}/expiry`, { method: 'PATCH', body: JSON.stringify({ expiryDate }) }),
     },
     analytics: {
         getSummary: (id: string) => fetcher(`/analytics/${id}/summary`),

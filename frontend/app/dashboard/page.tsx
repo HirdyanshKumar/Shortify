@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { api } from "@/lib/api";
 import { cn } from "@/lib/utils";
-import { Copy, Trash2, BarChart2, Globe, Lock, Unlock, Eye, EyeOff, Plus, Power, QrCode, X } from "lucide-react";
+import { Copy, Trash2, BarChart2, Globe, Lock, Unlock, Eye, EyeOff, Plus, Power, QrCode, X, Calendar, Home } from "lucide-react";
 
 export default function Dashboard() {
     const router = useRouter();
@@ -18,12 +18,15 @@ export default function Dashboard() {
     const [alias, setAlias] = useState("");
     const [isPrivate, setIsPrivate] = useState(false);
     const [password, setPassword] = useState("");
+    const [expiryDate, setExpiryDate] = useState("");
     const [creating, setCreating] = useState(false);
     const [message, setMessage] = useState("");
     const [isError, setIsError] = useState(false);
 
     // QR Modal State
     const [qrData, setQrData] = useState<{ src: string, link: string } | null>(null);
+    const [expiryModal, setExpiryModal] = useState<{ id: string, current: string } | null>(null);
+    const [newExpiry, setNewExpiry] = useState("");
 
     useEffect(() => {
         const token = localStorage.getItem("token");
@@ -64,6 +67,7 @@ export default function Dashboard() {
 
             if (alias) payload.customAlias = alias;
             if (isPrivate && password) payload.password = password;
+            if (expiryDate) payload.expiryDate = expiryDate;
 
             const res = await api.url.create(payload);
             if (res.success) {
@@ -72,6 +76,7 @@ export default function Dashboard() {
                 setNewUrl("");
                 setAlias("");
                 setPassword("");
+                setExpiryDate("");
                 setIsPrivate(false);
                 fetchUrls(); // refresh list
             }
@@ -133,6 +138,19 @@ export default function Dashboard() {
         }
     };
 
+    const handleUpdateExpiry = async (e: React.FormEvent) => {
+        e.preventDefault();
+        if (!expiryModal) return;
+        try {
+            await api.url.updateExpiry(expiryModal.id, newExpiry);
+            setUrls(urls.map(u => u._id === expiryModal.id ? { ...u, expiryDate: newExpiry } : u));
+            setExpiryModal(null);
+            setNewExpiry("");
+        } catch (err) {
+            alert("Failed to update expiry");
+        }
+    };
+
     const copyToClipboard = (shortId: string) => {
 
         const baseUrl = process.env.NEXT_PUBLIC_BASE_URL;
@@ -152,15 +170,22 @@ export default function Dashboard() {
                         <h1 className="text-3xl font-bold neon-text text-neon-blue">DASHBOARD</h1>
                         <p className="text-gray-400 text-sm">Welcome back, {user?.username || "Commander"}</p>
                     </div>
-                    <button
-                        onClick={() => {
-                            localStorage.removeItem("token");
-                            router.push("/");
-                        }}
-                        className="px-4 py-2 border border-red-500/50 text-red-500 hover:bg-red-500/10 rounded transition"
-                    >
-                        DISCONNECT
-                    </button>
+                    <div className="flex items-center gap-4">
+                        <Link href="/">
+                            <button className="px-4 py-2 border border-neon-blue/50 text-neon-blue hover:bg-neon-blue/10 rounded transition flex items-center gap-2">
+                                <Home size={18} /> HOME
+                            </button>
+                        </Link>
+                        <button
+                            onClick={() => {
+                                localStorage.removeItem("token");
+                                router.push("/");
+                            }}
+                            className="px-4 py-2 border border-red-500/50 text-red-500 hover:bg-red-500/10 rounded transition"
+                        >
+                            DISCONNECT
+                        </button>
+                    </div>
                 </header>
 
                 {/* Create Section */}
@@ -186,6 +211,16 @@ export default function Dashboard() {
                                 onChange={e => setAlias(e.target.value)}
                                 placeholder="my-link"
                                 className="w-full bg-black/50 border border-white/10 rounded p-3 focus:border-neon-blue focus:ring-1 focus:ring-neon-blue outline-none transition"
+                            />
+                        </div>
+                        <div className="w-full md:w-48 space-y-1">
+                            <label className="text-xs text-gray-500 uppercase tracking-widest">Expiry</label>
+                            <input
+                                type="datetime-local"
+                                value={expiryDate}
+                                onChange={e => setExpiryDate(e.target.value)}
+                                onClick={(e) => (e.target as HTMLInputElement).showPicker()}
+                                className="w-full bg-black/50 border border-white/10 rounded p-3 focus:border-neon-blue focus:ring-1 focus:ring-neon-blue outline-none transition text-sm text-gray-300 placeholder-gray-600 appearance-none"
                             />
                         </div>
                         <div className="flex items-center gap-2 h-12 pb-1">
@@ -286,6 +321,16 @@ export default function Dashboard() {
                                         <QrCode size={18} />
                                     </button>
                                     <button
+                                        onClick={() => {
+                                            setExpiryModal({ id: url._id, current: url.expiryDate || "" });
+                                            setNewExpiry(url.expiryDate ? new Date(url.expiryDate).toISOString().slice(0, 16) : "");
+                                        }}
+                                        className="p-2 rounded hover:bg-white/10 text-neon-teal transition"
+                                        title="Update Expiry"
+                                    >
+                                        <Calendar size={18} />
+                                    </button>
+                                    <button
                                         onClick={() => copyToClipboard(url.customAlias || url.shortId)}
                                         className="p-2 rounded hover:bg-white/10 text-gray-300 transition"
                                         title="Copy Link"
@@ -339,6 +384,42 @@ export default function Dashboard() {
                                     DOWNLOAD ACCESS CODE
                                 </button>
                             </div>
+                        </div>
+                    </div>
+                )
+            }
+
+            {/* Expiry Modal */}
+            {
+                expiryModal && (
+                    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm p-4">
+                        <div className="bg-bg-dark border border-neon-blue/30 p-6 rounded-2xl max-w-sm w-full relative shadow-[0_0_30px_rgba(0,243,255,0.2)]">
+                            <button
+                                onClick={() => setExpiryModal(null)}
+                                className="absolute top-4 right-4 text-gray-400 hover:text-white transition"
+                            >
+                                <X size={20} />
+                            </button>
+                            <h3 className="text-xl font-bold text-center text-neon-blue mb-4">UPDATE EXPIRY</h3>
+                            <form onSubmit={handleUpdateExpiry} className="space-y-4">
+                                <div>
+                                    <label className="text-xs text-gray-500 uppercase tracking-widest block mb-2">New Expiry Date</label>
+                                    <input
+                                        type="datetime-local"
+                                        required
+                                        value={newExpiry}
+                                        onChange={e => setNewExpiry(e.target.value)}
+                                        onClick={(e) => (e.target as HTMLInputElement).showPicker()}
+                                        className="w-full bg-black/50 border border-white/10 rounded p-3 focus:border-neon-blue focus:ring-1 focus:ring-neon-blue outline-none transition text-white"
+                                    />
+                                </div>
+                                <button
+                                    type="submit"
+                                    className="w-full py-2 bg-neon-blue text-black font-bold rounded hover:bg-neon-blue/90 transition"
+                                >
+                                    UPDATE
+                                </button>
+                            </form>
                         </div>
                     </div>
                 )
