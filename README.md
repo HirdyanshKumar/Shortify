@@ -87,7 +87,7 @@ npm install
 Create a `.env` file in `frontend/`:
 ```env
 NEXT_PUBLIC_API_URL=http://localhost:3000/api
-BASE_URL=http://localhost:3000
+NEXT_PUBLIC_BASE_URL=http://localhost:3000
 ```
 
 Start the client (Vite/Next):
