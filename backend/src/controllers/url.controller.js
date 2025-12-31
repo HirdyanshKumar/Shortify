@@ -147,3 +147,20 @@ exports.updatePrivacy = async (req, res) => {
     return error(res, err.message, 500);
   }
 };
+
+exports.updateExpiry = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { expiryDate } = req.body;
+
+    const url = await Url.findOne({ _id: id, user: req.user.id });
+    if (!url) return error(res, "URL not found", 404);
+
+    url.expiryDate = expiryDate;
+    await url.save();
+
+    return success(res, url, "Expiry updated");
+  } catch (err) {
+    return error(res, err.message, 500);
+  }
+};
